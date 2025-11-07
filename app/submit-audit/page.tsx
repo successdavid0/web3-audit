@@ -36,10 +36,20 @@ export default function SubmitAuditPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
+    const formData = new FormData(e.currentTarget)
+    const auditData = {
+      projectName: formData.get("projectName") as string,
+      projectType: formData.get("projectType") as string,
+      description: formData.get("description") as string,
+      blockchain: formData.get("blockchain") as string,
+      priority: formData.get("priority") as string,
+      contactEmail: formData.get("contactEmail") as string,
+    }
+
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    addAuditRequest()
+    addAuditRequest(auditData)
 
     // Redirect to dashboard
     router.push("/dashboard")
@@ -90,12 +100,12 @@ export default function SubmitAuditPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="projectName">Project Name *</Label>
-                <Input id="projectName" placeholder="e.g., DeFi Protocol" required />
+                <Input id="projectName" name="projectName" placeholder="e.g., DeFi Protocol" required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="projectType">Project Type *</Label>
-                <Select required>
+                <Select name="projectType" required>
                   <SelectTrigger id="projectType">
                     <SelectValue placeholder="Select project type" />
                   </SelectTrigger>
@@ -114,6 +124,7 @@ export default function SubmitAuditPage() {
                 <Label htmlFor="description">Project Description *</Label>
                 <Textarea
                   id="description"
+                  name="description"
                   placeholder="Describe your project, its purpose, and key features..."
                   rows={4}
                   required
@@ -122,7 +133,7 @@ export default function SubmitAuditPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="website">Website URL</Label>
-                <Input id="website" type="url" placeholder="https://yourproject.com" />
+                <Input id="website" name="website" type="url" placeholder="https://yourproject.com" />
               </div>
             </CardContent>
           </Card>
@@ -136,7 +147,7 @@ export default function SubmitAuditPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="blockchain">Blockchain *</Label>
-                <Select required>
+                <Select name="blockchain" required>
                   <SelectTrigger id="blockchain">
                     <SelectValue placeholder="Select blockchain" />
                   </SelectTrigger>
@@ -191,6 +202,7 @@ export default function SubmitAuditPage() {
                 <Label htmlFor="contractAddress">Contract Address(es) *</Label>
                 <Textarea
                   id="contractAddress"
+                  name="contractAddress"
                   placeholder="0x... (one per line for multiple contracts)"
                   rows={3}
                   required
@@ -199,17 +211,17 @@ export default function SubmitAuditPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="githubRepo">GitHub Repository *</Label>
-                <Input id="githubRepo" placeholder="https://github.com/username/repo" required />
+                <Input id="githubRepo" name="githubRepo" placeholder="https://github.com/username/repo" required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="solidity">Solidity Version</Label>
-                <Input id="solidity" placeholder="e.g., 0.8.20" />
+                <Input id="solidity" name="solidity" placeholder="e.g., 0.8.20" />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="linesOfCode">Estimated Lines of Code</Label>
-                <Input id="linesOfCode" type="number" placeholder="e.g., 1500" />
+                <Input id="linesOfCode" name="linesOfCode" type="number" placeholder="e.g., 1500" />
               </div>
             </CardContent>
           </Card>
@@ -223,7 +235,7 @@ export default function SubmitAuditPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="auditType">Audit Type *</Label>
-                <Select required>
+                <Select name="auditType" required>
                   <SelectTrigger id="auditType">
                     <SelectValue placeholder="Select audit type" />
                   </SelectTrigger>
@@ -238,7 +250,7 @@ export default function SubmitAuditPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="priority">Priority Level *</Label>
-                <Select required>
+                <Select name="priority" required>
                   <SelectTrigger id="priority">
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
@@ -255,6 +267,7 @@ export default function SubmitAuditPage() {
                 <Label htmlFor="specificConcerns">Specific Concerns or Focus Areas</Label>
                 <Textarea
                   id="specificConcerns"
+                  name="specificConcerns"
                   placeholder="Describe any specific security concerns, previous issues, or areas you'd like us to focus on..."
                   rows={4}
                 />
@@ -264,6 +277,7 @@ export default function SubmitAuditPage() {
                 <Label htmlFor="previousAudits">Previous Audits</Label>
                 <Textarea
                   id="previousAudits"
+                  name="previousAudits"
                   placeholder="List any previous audits, findings, or security reviews..."
                   rows={3}
                 />
@@ -281,28 +295,33 @@ export default function SubmitAuditPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="contactName">Full Name *</Label>
-                  <Input id="contactName" placeholder="John Doe" required />
+                  <Input id="contactName" name="contactName" placeholder="John Doe" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="contactEmail">Email *</Label>
-                  <Input id="contactEmail" type="email" placeholder="john@example.com" required />
+                  <Input id="contactEmail" name="contactEmail" type="email" placeholder="john@example.com" required />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="telegram">Telegram Handle</Label>
-                <Input id="telegram" placeholder="@username" />
+                <Input id="telegram" name="telegram" placeholder="@username" />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="discord">Discord Handle</Label>
-                <Input id="discord" placeholder="username#1234" />
+                <Input id="discord" name="discord" placeholder="username#1234" />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="additionalInfo">Additional Information</Label>
-                <Textarea id="additionalInfo" placeholder="Any other information you'd like to share..." rows={3} />
+                <Textarea
+                  id="additionalInfo"
+                  name="additionalInfo"
+                  placeholder="Any other information you'd like to share..."
+                  rows={3}
+                />
               </div>
             </CardContent>
           </Card>

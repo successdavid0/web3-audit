@@ -4,28 +4,52 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Shield } from "lucide-react"
+import { Shield, Search } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { getAuditStats } from "@/lib/audit-stats"
+import { getAuditStats, getAuditRequests, type AuditRequest } from "@/lib/audit-stats"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, completed: 0 })
+  const [audits, setAudits] = useState<AuditRequest[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [priorityFilter, setPriorityFilter] = useState("all")
 
   useEffect(() => {
-    // Load initial stats
+    // Load initial stats and audits
     setStats(getAuditStats())
+    setAudits(getAuditRequests())
 
     // Listen for stats updates
     const handleStatsUpdate = (event: CustomEvent) => {
       setStats(event.detail)
     }
 
+    const handleAuditsUpdate = (event: CustomEvent) => {
+      setAudits(event.detail)
+    }
+
     window.addEventListener("auditStatsUpdated" as any, handleStatsUpdate)
+    window.addEventListener("auditsUpdated" as any, handleAuditsUpdate)
 
     return () => {
       window.removeEventListener("auditStatsUpdated" as any, handleStatsUpdate)
+      window.removeEventListener("auditsUpdated" as any, handleAuditsUpdate)
     }
   }, [])
+
+  const filteredAudits = audits.filter((audit) => {
+    const matchesSearch =
+      audit.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      audit.contactEmail.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesStatus = statusFilter === "all" || audit.status === statusFilter
+    const matchesPriority = priorityFilter === "all" || audit.priority === priorityFilter
+
+    return matchesSearch && matchesStatus && matchesPriority
+  })
 
   return (
     <div className="min-h-screen bg-background">
@@ -78,6 +102,88 @@ export default function DashboardPage() {
             <div className="mt-2 text-3xl font-bold">{stats.completed}</div>
           </Card>
         </div>
+
+        {audits.length > 0 && (
+          <div className="mt-12 space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-2xl font-bold">Audit Requests</h2>
+              <div className="flex flex-wrap gap-2">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search audits..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priority</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              {filteredAudits.map((audit) => (
+                <Card key={audit.id} className="p-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold">{audit.projectName}</h3>
+                        <Badge
+                          variant={
+                            audit.status === "completed"
+                              ? "default"
+                              : audit.status === "in_progress"
+                                ? "secondary"
+                                : "outline"
+                          }
+                        >
+                          {audit.status === "pending"
+                            ? "Pending"
+                            : audit.status === "in_progress"
+                              ? "In Progress"
+                              : "Completed"}
+                        </Badge>
+                        <Badge variant="outline">{audit.priority}</Badge>
+                      </div>
+                      <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{audit.description}</p>
+                      <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
+                        <span>ID: {audit.id}</span>
+                        <span>Type: {audit.projectType}</span>
+                        <span>Chain: {audit.blockchain}</span>
+                        <span>Submitted: {new Date(audit.submittedDate).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <Link href={`/audits/${audit.id}`}>
+                      <Button variant="outline">View Details</Button>
+                    </Link>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
