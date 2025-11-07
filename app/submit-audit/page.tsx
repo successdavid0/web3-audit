@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { addAuditRequest } from "@/lib/audit-stats"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -38,6 +38,8 @@ export default function SubmitAuditPage() {
 
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    addAuditRequest()
 
     // Redirect to dashboard
     router.push("/dashboard")
