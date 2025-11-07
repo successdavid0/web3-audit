@@ -9,11 +9,11 @@ export function AuditCard({ audit }: { audit: Audit }) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
+        return "bg-orange-400/10 text-orange-400 border-orange-400/20"
       case "in-progress":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20"
+        return "bg-orange-600/10 text-orange-600 border-orange-600/20"
       case "completed":
-        return "bg-green-500/10 text-green-500 border-green-500/20"
+        return "bg-green-400/10 text-green-400 border-green-400/20"
       default:
         return "bg-muted text-muted-foreground"
     }

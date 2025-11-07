@@ -51,6 +51,19 @@ export default function DashboardPage() {
     return matchesSearch && matchesStatus && matchesPriority
   })
 
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-orange-400/10 text-orange-400 border-orange-400/20"
+      case "in_progress":
+        return "bg-orange-600/10 text-orange-600 border-orange-600/20"
+      case "completed":
+        return "bg-green-400/10 text-green-400 border-green-400/20"
+      default:
+        return ""
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -158,15 +171,7 @@ export default function DashboardPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-semibold">{audit.projectName}</h3>
-                        <Badge
-                          variant={
-                            audit.status === "completed"
-                              ? "default"
-                              : audit.status === "in_progress"
-                                ? "secondary"
-                                : "outline"
-                          }
-                        >
+                        <Badge className={getStatusBadgeClass(audit.status)}>
                           {audit.status === "pending"
                             ? "Pending"
                             : audit.status === "in_progress"
