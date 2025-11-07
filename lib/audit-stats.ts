@@ -10,6 +10,21 @@ export type AuditRequest = {
   submittedDate: string
   contactEmail: string
   description: string
+  website?: string
+  contractAddress?: string
+  githubRepo?: string
+  solidity?: string
+  linesOfCode?: string
+  auditType?: string
+  specificConcerns?: string
+  previousAudits?: string
+  contactName?: string
+  telegram?: string
+  discord?: string
+  additionalInfo?: string
+  resultStatus: "pending" | "uploaded"
+  resultFile?: string
+  resultUploadedDate?: string
 }
 
 type AuditStats = {
@@ -51,7 +66,12 @@ export const getAuditRequests = (): AuditRequest[] => {
   return []
 }
 
-export const addAuditRequest = (auditData: Omit<AuditRequest, "id" | "status" | "submittedDate">) => {
+export const addAuditRequest = (
+  auditData: Omit<
+    AuditRequest,
+    "id" | "status" | "submittedDate" | "resultStatus" | "resultFile" | "resultUploadedDate"
+  >,
+) => {
   const stats = getAuditStats()
   stats.total += 1
   stats.pending += 1
@@ -64,6 +84,7 @@ export const addAuditRequest = (auditData: Omit<AuditRequest, "id" | "status" | 
     id: `AUD-${Date.now()}`,
     status: "pending",
     submittedDate: new Date().toISOString(),
+    resultStatus: "pending",
   }
   audits.push(newAudit)
   localStorage.setItem(AUDITS_KEY, JSON.stringify(audits))
@@ -81,4 +102,24 @@ export const updateAuditStatus = (from: keyof Omit<AuditStats, "total">, to: key
 
   // Dispatch custom event for real-time updates
   window.dispatchEvent(new CustomEvent("auditStatsUpdated", { detail: stats }))
+}
+
+export const uploadAuditResult = (auditId: string, resultFile: string) => {
+  const audits = getAuditRequests()
+  const auditIndex = audits.findIndex((a) => a.id === auditId)
+
+  if (auditIndex !== -1) {
+    audits[auditIndex].resultStatus = "uploaded"
+    audits[auditIndex].resultFile = resultFile
+    audits[auditIndex].resultUploadedDate = new Date().toISOString()
+    localStorage.setItem(AUDITS_KEY, JSON.stringify(audits))
+
+    // Dispatch custom event for real-time updates
+    window.dispatchEvent(new CustomEvent("auditsUpdated", { detail: audits }))
+  }
+}
+
+export const getAuditById = (auditId: string): AuditRequest | undefined => {
+  const audits = getAuditRequests()
+  return audits.find((a) => a.id === auditId)
 }

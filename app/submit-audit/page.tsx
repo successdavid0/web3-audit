@@ -41,9 +41,21 @@ export default function SubmitAuditPage() {
       projectName: formData.get("projectName") as string,
       projectType: formData.get("projectType") as string,
       description: formData.get("description") as string,
+      website: formData.get("website") as string,
       blockchain: formData.get("blockchain") as string,
+      contractAddress: formData.get("contractAddress") as string,
+      githubRepo: formData.get("githubRepo") as string,
+      solidity: formData.get("solidity") as string,
+      linesOfCode: formData.get("linesOfCode") as string,
+      auditType: formData.get("auditType") as string,
       priority: formData.get("priority") as string,
+      specificConcerns: formData.get("specificConcerns") as string,
+      previousAudits: formData.get("previousAudits") as string,
+      contactName: formData.get("contactName") as string,
       contactEmail: formData.get("contactEmail") as string,
+      telegram: formData.get("telegram") as string,
+      discord: formData.get("discord") as string,
+      additionalInfo: formData.get("additionalInfo") as string,
     }
 
     // Simulate API call

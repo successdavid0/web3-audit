@@ -34,6 +34,17 @@ export function AuditCard({ audit }: { audit: Audit }) {
     }
   }
 
+  const getResultColor = (resultStatus: string) => {
+    switch (resultStatus) {
+      case "pending":
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
+      case "uploaded":
+        return "bg-green-500/10 text-green-500 border-green-500/20"
+      default:
+        return "bg-muted text-muted-foreground"
+    }
+  }
+
   return (
     <Card className="transition-shadow hover:shadow-md">
       <CardHeader>
@@ -43,16 +54,30 @@ export function AuditCard({ audit }: { audit: Audit }) {
               <Badge className={getStatusColor(audit.status)}>{audit.status}</Badge>
               <Badge className={getPriorityColor(audit.priority)}>{audit.priority}</Badge>
               <Badge variant="outline">{audit.blockchain}</Badge>
+              <Badge className={getResultColor(audit.resultStatus || "pending")}>
+                {audit.resultStatus === "uploaded" ? "Result Uploaded" : "Pending Result"}
+              </Badge>
             </div>
             <CardTitle className="text-xl">{audit.projectName}</CardTitle>
             <CardDescription className="mt-1">{audit.projectType}</CardDescription>
           </div>
-          <Link href={`/audits/${audit.id}`}>
-            <Button variant="ghost" size="sm" className="gap-2">
-              View Details
-              <ExternalLink className="h-4 w-4" />
-            </Button>
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link href={`/audits/${audit.id}`}>
+              <Button variant="ghost" size="sm" className="w-full gap-2">
+                View Details
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href={`/audits/${audit.id}/result`}>
+              <Button
+                size="sm"
+                className="w-full gap-2"
+                variant={audit.resultStatus === "uploaded" ? "default" : "outline"}
+              >
+                {audit.resultStatus === "uploaded" ? "View Result" : "Upload Result"}
+              </Button>
+            </Link>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
