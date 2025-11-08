@@ -153,3 +153,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Added glow hover effect for all buttons */
+@layer components {
+  .button-glow {
+    transition: all 0.3s ease;
+  }
+
+  .button-glow:hover {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 40px rgba(139, 92, 246, 0.4);
+    transform: translateY(-2px);
+  }
+}

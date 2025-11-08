@@ -181,43 +181,52 @@ export default function DashboardPage() {
           ) : (
             <div className="grid gap-4">
               {filteredAudits.map((audit) => (
-                <Card key={audit.id} className="p-6">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold">{audit.projectName}</h3>
-                        <Badge className={getStatusBadgeClass(audit.status)}>
-                          {audit.status === "pending"
-                            ? "Pending"
-                            : audit.status === "in_progress"
-                              ? "In Progress"
-                              : "Completed"}
-                        </Badge>
-                        <Badge className={getPriorityBadgeClass(audit.priority)}>
-                          {audit.priority.charAt(0).toUpperCase() + audit.priority.slice(1)}
-                        </Badge>
-                      </div>
-                      <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{audit.description}</p>
-                      <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
-                        <span>ID: {audit.id}</span>
-                        <span>Type: {audit.projectType}</span>
-                        <span>Chain: {audit.blockchain}</span>
-                        <span>Submitted: {new Date(audit.submittedDate).toLocaleDateString()}</span>
-                      </div>
+                <Card key={audit.id} className="relative p-6">
+                  <Link href={`/audits/${audit.id}`} className="absolute right-4 top-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="button-glow bg-blue-600 text-white hover:bg-blue-700 border-blue-600"
+                    >
+                      View Details
+                    </Button>
+                  </Link>
+
+                  <div className="pr-28">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold">{audit.projectName}</h3>
+                      <Badge className={getStatusBadgeClass(audit.status)}>
+                        {audit.status === "pending"
+                          ? "Pending"
+                          : audit.status === "in_progress"
+                            ? "In Progress"
+                            : "Completed"}
+                      </Badge>
+                      <Badge className={getPriorityBadgeClass(audit.priority)}>
+                        {audit.priority.charAt(0).toUpperCase() + audit.priority.slice(1)}
+                      </Badge>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <Link href={`/audits/${audit.id}`}>
-                        <Button variant="outline" className="w-full bg-transparent">
-                          View Details
-                        </Button>
-                      </Link>
-                      <Link href={`/audits/${audit.id}/result`}>
-                        <Button variant={audit.resultStatus === "uploaded" ? "default" : "outline"} className="w-full">
-                          {audit.resultStatus === "uploaded" ? "View Result" : "Upload Result"}
-                        </Button>
-                      </Link>
+                    <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{audit.description}</p>
+                    <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
+                      <span>ID: {audit.id}</span>
+                      <span>Type: {audit.projectType}</span>
+                      <span>Chain: {audit.blockchain}</span>
+                      <span>Submitted: {new Date(audit.submittedDate).toLocaleDateString()}</span>
                     </div>
                   </div>
+
+                  <Link href={`/audits/${audit.id}/result`} className="absolute bottom-4 left-4">
+                    <Button
+                      size="sm"
+                      className={`button-glow ${
+                        audit.resultStatus === "uploaded"
+                          ? "bg-green-600 hover:bg-green-700 text-white"
+                          : "bg-orange-500 hover:bg-orange-600 text-white"
+                      }`}
+                    >
+                      Result
+                    </Button>
+                  </Link>
                 </Card>
               ))}
             </div>
