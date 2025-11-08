@@ -186,13 +186,13 @@ export default function DashboardPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="button-glow bg-blue-600 text-white hover:bg-blue-700 border-blue-600"
+                      className="bg-blue-600 text-white hover:bg-blue-700 border-blue-600 transition-all duration-200 hover:shadow-lg hover:scale-105"
                     >
                       View Details
                     </Button>
                   </Link>
 
-                  <div className="pr-28">
+                  <div className="pr-28 pb-12">
                     <div className="flex items-center gap-2">
                       <h3 className="text-lg font-semibold">{audit.projectName}</h3>
                       <Badge className={getStatusBadgeClass(audit.status)}>
@@ -215,10 +215,10 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <Link href={`/audits/${audit.id}/result`} className="absolute bottom-4 left-4">
+                  <Link href={`/audits/${audit.id}/result`} className="absolute bottom-4 right-4">
                     <Button
                       size="sm"
-                      className={`button-glow ${
+                      className={`transition-all duration-200 hover:shadow-lg hover:scale-105 ${
                         audit.resultStatus === "uploaded"
                           ? "bg-green-600 hover:bg-green-700 text-white"
                           : "bg-orange-500 hover:bg-orange-600 text-white"
