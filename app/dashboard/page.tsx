@@ -205,9 +205,18 @@ export default function DashboardPage() {
                         <span>Submitted: {new Date(audit.submittedDate).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    <Link href={`/audits/${audit.id}`}>
-                      <Button variant="outline">View Details</Button>
-                    </Link>
+                    <div className="flex flex-col gap-2">
+                      <Link href={`/audits/${audit.id}`}>
+                        <Button variant="outline" className="w-full bg-transparent">
+                          View Details
+                        </Button>
+                      </Link>
+                      <Link href={`/audits/${audit.id}/result`}>
+                        <Button variant={audit.resultStatus === "uploaded" ? "default" : "outline"} className="w-full">
+                          {audit.resultStatus === "uploaded" ? "View Result" : "Upload Result"}
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </Card>
               ))}
