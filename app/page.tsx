@@ -29,7 +29,6 @@ export default function LandingPage() {
           </nav>
         </div>
       </header>
-
       {/* Hero */}
       <section className="container mx-auto px-4 py-20 leading-6 lg:py-[78px]">
         <div className="mx-auto max-w-4xl">
@@ -61,7 +60,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Features */}
       <section className="border-t border-border bg-muted/30 py-20">
         <div className="container mx-auto px-4">
@@ -120,7 +118,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Footer */}
     </div>
   )
