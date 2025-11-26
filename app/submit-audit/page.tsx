@@ -13,19 +13,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Shield } from "lucide-react"
-import Image from "next/image"
 
 const BlockchainIcon = ({ name }: { name: string }) => {
-  const logos: Record<string, string> = {
-    ethereum: "/ethereum-logo.png",
-    polygon: "/polygon-logo.png",
-    bsc: "/binance-smart-chain-logo.jpg",
-    arbitrum: "/arbitrum-logo-abstract.png",
-    optimism: "/optimism-logo-abstract.png",
-    avalanche: "/avalanche-logo-abstract.png",
-    other: "/blockchain-logo.png",
+  const getBlockchainLabel = (name: string) => {
+    const labels: Record<string, string> = {
+      ethereum: "⟠",
+      polygon: "◆",
+      bsc: "◉",
+      arbitrum: "◈",
+      optimism: "●",
+      avalanche: "▲",
+      other: "○",
+    }
+    return labels[name] || labels.other
   }
-  return <Image src={logos[name] || logos.other} alt={`${name} logo`} width={24} height={24} className="mr-2" />
+
+  return <span className="mr-2 text-lg">{getBlockchainLabel(name)}</span>
 }
 
 export default function SubmitAuditPage() {
@@ -35,6 +38,8 @@ export default function SubmitAuditPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
+
+    console.log("[v0] Form submission started")
 
     const formData = new FormData(e.currentTarget)
     const auditData = {
@@ -58,10 +63,13 @@ export default function SubmitAuditPage() {
       additionalInfo: formData.get("additionalInfo") as string,
     }
 
+    console.log("[v0] Audit data:", auditData)
+
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     addAuditRequest(auditData)
+    console.log("[v0] Audit request added, redirecting to dashboard")
 
     // Redirect to dashboard
     router.push("/dashboard")
