@@ -9,11 +9,27 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Shield, Upload, FileText, CheckCircle2, ArrowLeft } from "lucide-react"
+import { Shield, Upload, FileText, CheckCircle2, ArrowLeft, AlertTriangle, Code, Server } from "lucide-react"
 import { getAuditById, uploadAuditResult, type AuditRequest } from "@/lib/audit-stats"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+
+type AnalysisResult = {
+  address: string
+  slither_analysis: Array<{
+    contract_name: string
+    functions: Array<{
+      function_name: string
+      state_variables_read: string[]
+      state_variables_written: string[]
+      nodes: string[]
+    }>
+  }>
+  abi: any[]
+  erc20_calldata: any
+}
 
 export default function AuditResultPage() {
   const params = useParams()
@@ -22,6 +38,9 @@ export default function AuditResultPage() {
   const [audit, setAudit] = useState<AuditRequest | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [resultFile, setResultFile] = useState("")
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
 
   useEffect(() => {
     const auditData = getAuditById(id)
@@ -29,6 +48,49 @@ export default function AuditResultPage() {
       setAudit(auditData)
     }
   }, [id])
+
+  const runAutomatedAnalysis = async () => {
+    if (!audit?.contractAddress) {
+      setAnalysisError("No contract address found for this audit")
+      return
+    }
+
+    setIsAnalyzing(true)
+    setAnalysisError(null)
+
+    try {
+      console.log("[v0] Starting automated audit analysis for:", audit.contractAddress)
+
+      const response = await fetch("/api/audit/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contractAddress: audit.contractAddress,
+          owner: "0x1111111111111111111111111111111111111111",
+          spender: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          recipient: "0xcccccccccccccccccccccccccccccccccccccccc",
+          amount: 10000000,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Analysis failed")
+      }
+
+      console.log("[v0] Analysis completed successfully")
+      setAnalysisResult(data.data)
+      setResultFile(`Analysis_${audit.projectName}_${Date.now()}.json`)
+    } catch (error: any) {
+      console.error("[v0] Analysis error:", error)
+      setAnalysisError(error.message || "Failed to analyze contract")
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
 
   const handleUpload = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -40,20 +102,6 @@ export default function AuditResultPage() {
       setIsUploading(false)
       router.push(`/audits/${id}`)
     }, 1500)
-  }
-
-  if (!audit) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">Audit Not Found</h2>
-          <p className="mt-2 text-muted-foreground">The audit request you're looking for doesn't exist.</p>
-          <Link href="/dashboard">
-            <Button className="mt-4">Back to Dashboard</Button>
-          </Link>
-        </div>
-      </div>
-    )
   }
 
   const getResultColor = (resultStatus: string) => {
@@ -95,7 +143,7 @@ export default function AuditResultPage() {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-12">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-4xl">
           <Link href={`/audits/${id}`}>
             <Button variant="ghost" className="mb-6 gap-2">
               <ArrowLeft className="h-4 w-4" />
@@ -112,16 +160,16 @@ export default function AuditResultPage() {
                     Audit Result
                   </CardTitle>
                   <CardDescription className="mt-2">
-                    {audit.projectName} - {audit.projectType}
+                    {audit?.projectName} - {audit?.projectType}
                   </CardDescription>
                 </div>
-                <Badge className={getResultColor(audit.resultStatus || "pending")}>
-                  {audit.resultStatus === "uploaded" ? "Result Uploaded" : "Pending Result"}
+                <Badge className={getResultColor(audit?.resultStatus || "pending")}>
+                  {audit?.resultStatus === "uploaded" ? "Result Uploaded" : "Pending Result"}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent>
-              {audit.resultStatus === "uploaded" ? (
+              {audit?.resultStatus === "uploaded" ? (
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/10 p-4">
                     <CheckCircle2 className="h-6 w-6 text-green-500" />
@@ -154,45 +202,148 @@ export default function AuditResultPage() {
                   </div>
                 </div>
               ) : (
-                <form onSubmit={handleUpload} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="resultFile">Result File Name *</Label>
-                    <Input
-                      id="resultFile"
-                      placeholder="e.g., TalaTech_Audit_Report_2024.pdf"
-                      value={resultFile}
-                      onChange={(e) => setResultFile(e.target.value)}
-                      required
-                    />
-                    <p className="text-sm text-muted-foreground">Enter the name or path of the audit result file</p>
-                  </div>
+                <div className="space-y-6">
+                  {audit?.contractAddress && (
+                    <Card className="border-purple-500/20 bg-purple-500/5">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <Server className="h-5 w-5 text-purple-500" />
+                          Automated Contract Analysis
+                        </CardTitle>
+                        <CardDescription>
+                          Run automated security analysis using Slither on contract: {audit.contractAddress}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <Button onClick={runAutomatedAnalysis} disabled={isAnalyzing} className="w-full gap-2">
+                          {isAnalyzing ? (
+                            <>
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                              Analyzing Contract...
+                            </>
+                          ) : (
+                            <>
+                              <Code className="h-4 w-4" />
+                              Run Automated Analysis
+                            </>
+                          )}
+                        </Button>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="summary">Result Summary (Optional)</Label>
-                    <Textarea id="summary" placeholder="Brief summary of the audit findings..." rows={4} />
-                  </div>
+                        {analysisError && (
+                          <Alert variant="destructive">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertDescription>{analysisError}</AlertDescription>
+                          </Alert>
+                        )}
 
-                  <div className="flex gap-3">
-                    <Button type="submit" disabled={isUploading} className="flex-1 gap-2">
-                      {isUploading ? (
-                        <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-4 w-4" />
-                          Upload Result
-                        </>
-                      )}
-                    </Button>
-                    <Link href={`/audits/${id}`}>
-                      <Button type="button" variant="outline" className="bg-transparent">
-                        Cancel
+                        {analysisResult && (
+                          <div className="space-y-4">
+                            <Alert className="border-green-500/20 bg-green-500/5">
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <AlertDescription className="text-green-500">
+                                Analysis completed successfully!
+                              </AlertDescription>
+                            </Alert>
+
+                            <div className="space-y-3">
+                              <h4 className="font-semibold">Analysis Summary</h4>
+                              <div className="rounded-lg border bg-muted p-4">
+                                <div className="space-y-2 text-sm">
+                                  <p>
+                                    <span className="font-semibold">Contract Address:</span>{" "}
+                                    <code className="rounded bg-background px-1 py-0.5">{analysisResult.address}</code>
+                                  </p>
+                                  <p>
+                                    <span className="font-semibold">Contracts Found:</span>{" "}
+                                    {analysisResult.slither_analysis.length}
+                                  </p>
+                                  <p>
+                                    <span className="font-semibold">Total Functions:</span>{" "}
+                                    {analysisResult.slither_analysis.reduce((sum, c) => sum + c.functions.length, 0)}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {analysisResult.slither_analysis.map((contract, idx) => (
+                                <details key={idx} className="rounded-lg border bg-muted">
+                                  <summary className="cursor-pointer p-4 font-semibold hover:bg-muted/50">
+                                    {contract.contract_name} ({contract.functions.length} functions)
+                                  </summary>
+                                  <div className="border-t p-4">
+                                    {contract.functions.slice(0, 5).map((func, fidx) => (
+                                      <div key={fidx} className="mb-4 rounded border bg-background p-3">
+                                        <p className="font-mono text-sm font-semibold">{func.function_name}()</p>
+                                        <div className="mt-2 space-y-1 text-xs">
+                                          {func.state_variables_read.length > 0 && (
+                                            <p>
+                                              <span className="text-blue-500">Reads:</span>{" "}
+                                              {func.state_variables_read.join(", ")}
+                                            </p>
+                                          )}
+                                          {func.state_variables_written.length > 0 && (
+                                            <p>
+                                              <span className="text-orange-500">Writes:</span>{" "}
+                                              {func.state_variables_written.join(", ")}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                    {contract.functions.length > 5 && (
+                                      <p className="text-center text-sm text-muted-foreground">
+                                        + {contract.functions.length - 5} more functions
+                                      </p>
+                                    )}
+                                  </div>
+                                </details>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <form onSubmit={handleUpload} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="resultFile">Result File Name *</Label>
+                      <Input
+                        id="resultFile"
+                        placeholder="e.g., TalaTech_Audit_Report_2024.pdf"
+                        value={resultFile}
+                        onChange={(e) => setResultFile(e.target.value)}
+                        required
+                      />
+                      <p className="text-sm text-muted-foreground">Enter the name or path of the audit result file</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="summary">Result Summary (Optional)</Label>
+                      <Textarea id="summary" placeholder="Brief summary of the audit findings..." rows={4} />
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button type="submit" disabled={isUploading} className="flex-1 gap-2">
+                        {isUploading ? (
+                          <>
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4" />
+                            Upload Result
+                          </>
+                        )}
                       </Button>
-                    </Link>
-                  </div>
-                </form>
+                      <Link href={`/audits/${id}`}>
+                        <Button type="button" variant="outline" className="bg-transparent">
+                          Cancel
+                        </Button>
+                      </Link>
+                    </div>
+                  </form>
+                </div>
               )}
             </CardContent>
           </Card>

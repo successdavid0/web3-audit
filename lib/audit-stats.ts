@@ -25,6 +25,7 @@ export type AuditRequest = {
   resultStatus: "pending" | "uploaded"
   resultFile?: string
   resultUploadedDate?: string
+  analysisData?: any
 }
 
 type AuditStats = {
@@ -104,7 +105,7 @@ export const updateAuditStatus = (from: keyof Omit<AuditStats, "total">, to: key
   window.dispatchEvent(new CustomEvent("auditStatsUpdated", { detail: stats }))
 }
 
-export const uploadAuditResult = (auditId: string, resultFile: string) => {
+export const uploadAuditResult = (auditId: string, resultFile: string, analysisData?: any) => {
   const audits = getAuditRequests()
   const auditIndex = audits.findIndex((a) => a.id === auditId)
 
@@ -112,6 +113,9 @@ export const uploadAuditResult = (auditId: string, resultFile: string) => {
     audits[auditIndex].resultStatus = "uploaded"
     audits[auditIndex].resultFile = resultFile
     audits[auditIndex].resultUploadedDate = new Date().toISOString()
+    if (analysisData) {
+      audits[auditIndex].analysisData = analysisData
+    }
     localStorage.setItem(AUDITS_KEY, JSON.stringify(audits))
 
     // Dispatch custom event for real-time updates
